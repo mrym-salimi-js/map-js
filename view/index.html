@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="css/app.css" rel="stylesheet">
+    <script src="app.js" type="module" defer></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js" defer></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+</head>
+<style>
+    ::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #bebebe;
+        border-radius: 50px;
+    }
+
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .ul-box {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .ul-box::-webkit-scrollbar {
+        display: none;
+    }
+
+    #search-item:last-child {
+        border: none !important;
+    }
+
+    #search-input,
+    #routing-input {
+        direction: rtl;
+    }
+
+    .leaflet-control-scale-line {
+        background: none;
+        border: none;
+    }
+
+    .leaflet-right .leaflet-control {
+        margin-left: 30px;
+    }
+
+    /* .leaflet-pane .leaflet-marker-pane img {
+        margin-top: -49px;
+        margin-left: -33px;
+    } */
+
+    .leaflet-routing-container,
+    .leaflet-routing-error {
+        display: none;
+    }
+
+    #select-loc-marker {
+        left: calc(50% - 32px);
+        top: calc(50% - 65px);
+    }
+</style>
+
+<body>
+    <div id="container" class="w-full h-full absolute">
+        <!-- Map -->
+        <div id="map" class=" h-full"></div>
+        <!-- Select Location Red Marker -->
+        <div id="select-loc-marker" class="w-auto h-auto fixed  z-[1000] hidden">
+            <img
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAADT0lEQVR4nO2au2sVQRSHv6AianwjWFgoUaJgYWMjqBE0Jiqo8RHwUan5A6wVRMGkFxRs7BSDFhoEjQkYrSwEjWBeYCEIQjS+H4meHBnuCosk9+bO7uzs5u4HA7e5e87vt7MzZ+cs5OTk5OTkOEWhWmGXQJtAh0C/wIjAWDDM7z6BuwKtCo3mP2QZhSojRKBd4Nc4aDlD4KfATYUGcy2yhMIhgd5yRRcx47lCE2lHYY1AV1zCJzCiU2E1aUThgMAnV+JDJnxROEJaUKgSOOda+ARGtHlfG7Qg/krS4kMmXPZqgkCrL/EhEy54Ea/Q7Fv8v6Fw1Mdq/9W38NAs+KxQk5gB4nCri2BCZyLiFQ76FlvkUdifxKrf61toiYrR3a6g0BhDkg8UTirUKswLxlqFU2YaxzALdjozQKA9gvB+hc1TMHmLwECEODeciFeYb/NWFyT1SGFRGbEWC/RYxvqhMDc1018Kd37K4v8zYdDyMaiP3QCBNstkSk77yVCoszT9ogsDOnzszTY1h8CdeFSHsFmYzGpPRBRaLAzoI24E3lsYUBs1rtkiLQwYJm4ERi0MiHywaa5hYcAv4kZgzJMBCywMGCVuBEY8PQLrLAz4QNwI9GdoEXxF3Ajcs0jkYQxxuy3idsSjOoQpLspNJJgF27BEYatNTIHztjEnRWG3ZTIDpqy1iLdEYMjS9IZy45XEvLYKfLc0oaccEwLxjy1jfXPyMmQQuGWTVJDYoKntKYF5ZGzvfBCnHVco1NsmFkqwy6zsZnsLusbVwe8WmwVvgum/3fWR2MuoSboaAi+cN0oU9voWWuTu7yEJpJKPxQ0Kq1LWGDEd45UkiUKTwHgKxI8rHKaCm6Ot+EILu8I1j+Kvp+EbgVkC9z2I71aYTRrQQs/gWcL7/ULShMIy23P8MsW/VlhOGlGoEXjnUPxwHKdMTlHY6KJGCFpem8gCWvgs9neM4v8o7CNLKByLo1AKCp0TZBGFs1ENUDhDlhG4FOHuXyXrKMwQuG0hvkNhJtMBhTkCT8oQ/9ScQTKdUFhqGhZTED9kiiqmIworBN4UEf828ff6pFFYL/Bxkq89N1AJKNSFP7gynWeFHVQSCs0CEhQ6x6lEFE6b4TuPnBwql7+Hw1lguN5e9QAAAABJRU5ErkJggg==">
+        </div>
+        <!-- Search Box -->
+        <div id="search-box" class="w-full h-auto fixed  top-0 z-[1000] py-2 px-4 ">
+            <div
+                class="w-full h-12 rounded-full bg-[#3851b4e8] flex flex-row-reverse items-center justify-between p-4 mt-1 ">
+                <div class="w-[90%] h-full flex flex-row-reverse items-center gap-4">
+                    <svg id="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24 " fill="currentColor"
+                        class="w-6 h-6  fill-white cursor-pointer">
+                        <path fill-rule="evenodd"
+                            d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    <input id="search-input"
+                        class="outline-none w-[85%] bg-transparent text-white placeholder-white  text-right"
+                        placeholder="جستجوی مکان مورد نظر ...">
+                    <input id="routing-input"
+                        class="outline-none w-[85%] bg-transparent text-white placeholder-white  text-right hidden">
+                </div>
+                <svg id="close-search" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="#ffffff"
+                    class="w-6 h-6 self-center cursor-pointer hover:opacity-[0.7] hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+                <svg id="close-select-loc" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="#ffffff"
+                    class="w-6 h-6 self-center cursor-pointer hover:opacity-[0.7] hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </div>
+            <!-- Search List -->
+            <div id="search-list-box"
+                class="w-full min-h-[50px] max-h-[290px] overflow-hidden  rounded-3xl px-2 bg-white  relative top-1 p-3 hidden transition-all">
+                <div class="w-full min-h-[50px] max-h-[260px] overflow-auto ">
+                    <ul id="search-items-ul"
+                        class="w-full h-auto  p-2 flex flex-col items-center justify-around gap-3 ">
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--Routing-->
+        <div id="routing-box"
+            class="w-full min-h-[180px] bg-white z-[1000] absolute top-0 shadow-sm shadow-[#a7a7a7] hidden  transition-all flex flex-row-reverse gap-4">
+            <div class="w-auto h-auto p-3  relative top-3 right-3">
+                <svg id="routing-closer" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="#373737" class="w-6 h-6 cursor-pointer">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+
+            </div>
+            <ul id="map-routing-ul" class="w-full h-auto px-8  flex flex-col gap-4 z-[1000] relative top-7 ">
+                <li class="w-auto h-auto flex flex-row-reverse gap-4 align-middle items-center">
+                    <div class="w-auto h-auto flex flex-row-reverse items-center align-middle gap-2">
+                        <span class="w-4 h-4 block rounded-full border-4 border-blue-500"></span>
+                        <span class="w-6 h-[1-px] border-gray-300 border-[1px] border-dashed"></span>
+                    </div>
+                    <input id="start-point"
+                        class="w-[100%] outline-none p-3 border-gray-200 border-[1px] rounded-full  text-gray-400 placeholder-black  text-right text-sm"
+                        placeholder="موقعیت فعلی شما">
+                </li>
+                <span
+                    class="w-[1px] h-8 border-gray-300 border-[1px] border-dashed absolute right-[39px] bottom-[110px]"></span>
+                <li class="w-auto h-auto flex flex-row-reverse gap-4 align-middle items-center relative">
+                    <div class="w-auto h-auto flex flex-row-reverse items-center align-middle gap-2">
+                        <span class="w-4 h-4 block rounded-full border-4 bg-orange-400"></span>
+                        <span class="w-6 h-[1-px] border-gray-300 border-[1px] border-dashed"></span>
+                    </div>
+                    <input id="end-point"
+                        class="w-[100%] outline-none p-3 border-gray-200 border-[1px] rounded-full  text-gray-400 placeholder-gray-400  text-right text-sm"
+                        placeholder="مقصد خود را انتخاب کنید">
+
+                </li>
+            </ul>
+            <!--Routing End Point List-->
+            <div id="routing-list-box"
+                class="w-full min-h-[50px] max-h-[290px] overflow-hidden  rounded-3xl px-2 bg-orange-300  absolute bottom-[74px] left-0  p-3 hidden">
+                <div class="w-full min-h-[50px] max-h-[260px] overflow-auto ">
+                    <ul id="search-items-ul"
+                        class="w-full h-auto  p-4 flex flex-col items-center justify-around gap-1 ">
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <!--Driving Direcrion-->
+        <div id="driving-direction-box"
+            class="w-full h-[140px] p-[26px] bg-white z-[1000] absolute top-0 shadow-sm shadow-[#a7a7a7]  transition-all flex flex-row-reverse gap-7 items-center hidden">
+            <img id="driving-dir-icon" class="w-[40px] h-[40px] self-center">
+            <div class="w-auto h-auto p-1 flex flex-col gap-4">
+                <b id="direction-distance-km" dir="rtl" class="w-auto h-auto text-right font-sans text-black">
+
+                </b>
+                <b id="direction-distance-m" dir="rtl" class="w-auto h-auto text-right font-sans text-black">
+
+                </b>
+                <p id="driving-direction" dir="rtl" class="w-auto h-auto text-right font-sans text-gray-600 text-lg">
+                    سمت راست
+                </p>
+            </div>
+        </div>
+        <!--Places Category -->
+        <div id="places-category-box" class="w-[98%] h-auto py-1 px-4 absolute top-14 left-0 right-0 m-auto z-[1000]">
+            <div class="w-full h-full overflow-x-scroll ul-box">
+                <ul id="places-category-ul" class="w-auto py-3 px-1 flex gap-3  m-0 ">
+                    <li data-place-type="amenity" data-place-name="restaurant"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAD1UlEQVR4nO2W4U8TZxjA38Ut++D+hG0f9m37MrN93EgXE4KbKCOuihhMAIez0xBbRUCxYFtGuV5LgbYUN9dee5VdWVsopQVq22tZhUhRGLNSdMBCRTOFgNPFFPYs7zEdYN0crv3kk/ySy/M87/O7y13eexF6EUmCEGVu1p3Z/i4tz/nEqty1myFyBYzyszIOIleAc7iGe3Av2kgAQi+d/yrnI5cuv7HfeKA3whwaHbEfnp32liVuhU7B3EA1zA/UwP2IlANf4xyu4R7cO8x8MdJvOtDr0u1T0/JPeXjmPwq7mvaUhKiiwThbuXR/WAarWbgkgR/tR9bknoU4W5EIUoWDzua8z5+4AbGY93K3Nt8yGzz5cP3CX384DXfC4v8sXM9ssPJhl2YvzfD5mx6LOxr55N2L4j+SLcDSR+IZfwXHRuV3wtXLjqY9ck6qL3n/lYG2g+PPsvDekITjeZ58gC65hp1IL856b9pb/sQ7TRWTfSeWWsWZW5CqruBtAyVacLpqIR1QZtEiQex7B510ECr3z33QO3UhOZN/kaTWM+UFU5iGNkYNVLsaHFedT58ztYJn0gunnMoWJPM0j9qiXbCatsvtYPSdA0uHBjopEjooEuhOLVCsEb4bsYFliAHKrQebWQlTjQr4XaXi8H+tAENPK7iu9ySVdsS6ocWlXSi31yvRYWtNhq9KePUnDQmPuKGuh3sNK8NWs6BSwg01ATPqv2XrWWxQQe85EsxOHVD9JqBCFJh6WsFqbYRgqwImvhQMcl/1lczMzTNC4c2nDXoe5hqUMN+gXJOLi4RxP4/3GhrKzn7zmrBwbJoUJn5JMdOkMIFd2Mk9ddRXaoM5E6SDqK/UxkkZhr8pxpaN3x1vhnQQCxwfx06k3J+h0AuyHpw9tC2RDvSCrAeK/RkKpC7aGrUc3QnpRF24NYrIAh5Lp1FKH90JigIei46V8rfUVebNaWTFyxpZUYopXqo9sft2ef6HbyGRpTpsHXP861b3f+G67oFKRhJENJGzI9x3GpgL9WAKasB8yQydMXfSRV0THmi70g7G8Fmgg01gDGqhfczB7dmr92/rmJ2rGUIta2Y5Y274xquGOt3BY8gs35F9O1T1+Ld1a1AKgYAUuv1ycAQU8H2ABLuPAKevDtiADCbCZ2AxstL727AURvsl4PTJwY77AiR3jXO4Nh/Bs2Tg8BNcjQ3Uws1gFWAnMsm2Z8T9Fcvp+h/HAxVL39Z8/AFSH9n2KmsousydGlMtjkiBNRQPYye3e52X5Lzh1uZpQqZicyrx6PY2m8S5r2/o3P0i0AbjT7BnBcbweD8CAAAAAElFTkSuQmCC">
+                        <p class="text-[#484862] font-sans text-[14px]">رستوران</p>
+                    </li>
+                    <li data-place-type="amenity" data-place-name="cafe"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto mb-2"
+                            src="data:image/png;base64,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">
+                        <p class="text-[#484862] font-sans text-[14px]">کافه</p>
+                    </li>
+                    <li data-place-type="amenity" data-place-name="hospital"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,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">
+                        <p class=" text-[#484862] font-sans text-[14px]">بیمارستان</p>
+                    </li>
+                    <li data-place-type="amenity" data-place-name="pharmacy"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAADgklEQVR4nO2WXUgUURTHb4FFPhRRgZAoZhoSVLL4ENVcLYseLO/N9iEieqgsTfqghyBiiyy0LwiMQFJUCkJLSb13sZooKk1iw48mtMQ0VoVtlTI/M+nETO1attvubLM7S+wfDgsDM/x+95x77yIUSiihhPLfJdX4YJ5AWKZAuQVT9lqg7PgGUrUABXtSCDNgygsFyoYx5fBrCZSNY8or8DaWihDMQMESbGQRAuGHBcJfTYd2W4S/xZSfXmOsidKH+tSpmfJKKitK2ITX4NO7QvikQPgDTJnRkGkJ8zs3puZIeZ4Fwrt9hXbfFdaHCc9PIeZYTaE3bzbPllfo50p90xycuugM5Rb5EDCk1YT/Ezym5u2Y8t5AQGPX1ZuczjN8gl9HzJvkGdURHpz7hPKNqgUEwp7pDY+dI8WeqhbAlI9oCbEy5yEsvP4CwmpbYMZ9CeZUNkPkpQZYvbPOm/dHfBHQCN4MkZcbAIkSxNS/gZOdNiiwDkBWWx/Mf9wGYawVEg+IHr+jk4AZIgoaFfidUg90jn6B7rEJaBkeg6vWAch99wESnncoEp46oYPAFPyu1z3QNTahwJ/vtsPcR23KcyRKShfkX3mcgkhgCn6HZHXCy+PjAJ9ec+40BYuAengkSjDz3iv9BZIzGISfvwWoukEVPBIlmFXToq9AMmVw03AW4k0lkFXfBJahMa/hkSjBosIX+gk44G1Re2DwaBEUv+mFvC47nGi3egWPRAlWZYv6CEyHn7TaYbKnH3IfNQPKKwB098cd8LeK9HAC+U3gN/icQif80MUq5Zk8Tp4kIgoalY0fcAFP8I5KMJW6lYjwEt4vAiVJeR7hHbXMVPaHhBp4rLVAVmqpAvbpwLUp+Auu4V11Qi081lqArzgJH5bnwNd2q1fwjoozlSr3hFp4rLVA55KsHydOTz+M3noCtui9XgmUJ55RLju18Fhrgd7offD5XAVMvrdBf9Ixr+FTiHpw7A+B1rhD8HH3FRivexkQeKy1QHFSPthiMmH4Kg8IPNZaID2tEjpis8GeeEQpf8Njf9wDezfdUCTcwctd0goe++uvxNYtVVCUlA/N8YeVjd0eexCqV5pg/8YyzcCxPwUCWUi9ABvUGxr/LIGwT750oDKIBG6rFlhLeLxAeb/e8JiwAbylbinyJeuNtYsx5eX6jBMblFfeZ/hQQgklFBSIfAcJD90lY6A21AAAAABJRU5ErkJggg==">
+                        <p class=" text-[#484862] font-sans text-[14px]">داروخانه</p>
+                    </li>
+                    <li data-place-type="leisure" data-place-name="park"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAADfElEQVR4nO1YS2hTQRQ99YdQXYiKUlzoTkHooluhghYjIrhooYqIGy1YYz9p0nz7zOdlJkmpic2bWhDcKGIX3dStitiVVFeCiO2iahcWUSuiom1HJi9tkiZ5L01CXsQcuJtkGM65986ZOw+ooYYa/mMwOgVGvoDRz1DoLBidASMvoJAJMDoKRj1QyGkMhxpQlRihHWCU6wf5garE7dB2KOSbrgAl+BFReQ+qEizRKtoCIh4O51UOv+0tFHIBkUg9qgaMNOkK8Fo4HJ0c1JmsCP0KRocwQvajeg5zHvJRn5p9ISDmW/v/UuLAx+kRgwWQy7l7n3AMdKvkpV6NM0KmjRUQl7aB0YUMUvEgh7dXJS/ihldDAGWoqsMs2saTzLyIgE37jMSNbqGEANIEhb4EdU6tEhcx0KO2Uj7yscAifH0PIUlbURXw999Lke/mGA5qZ99nVdcG+99VhyvJNpog5O0TF5g2+SFJdSgRw7L4bQFx2mqsgLD7HAYl/fHiZoDDfU3NPnGkO9IyFBqGJG0wRsCofFCXvMi2pytpr93ChXJZ632Mjm6uvIAY3afdNt5U5l1mtRL5h0Cl8gIY2ZHHbTj81tStLMhHNe4G9X6YrLyAMWkLFPoTjMwhGngNYletNN1aRQWyxwq+poWWwehJGIpA/4MM4ivupGetjHKE3b8h2y4ZK8BnfbZKXOrhGLquT5wJ8snx22lexqCjxTgBxPE8YZF67cLShj/ZnqpW0C7OwQfEw3uNEaDQJwUTH5RS1ipC7k9f8xRjYxsrL4DRN/rEPWp7rRB3dnKEXLks1VJ5AWvfy4KwmFTDbg5/X8pS02envO1GfkGhhyorgPO6xL3gtcxnkc2wVbMqSrfV6CMYApd5KYu0ECT1qA9+rXE7U8B45cnLlsMJsuLyEnOPeNyIbKvTJy88yHtjPpCNkKPrI0pzky+0//kt8FIia0MldKUk8gqZQEzeXXDCyi5ATJRFEaeTRc1C5a9AYZdZHaN8d8TDG11dsxghjSgV0bvjXETJ6xidT2uHRfVLNpkGI4/B6J1dYbfS3nGW97af4o42k4hXJZNPJ3bRE9GMQoXmg6ut5UCSeDJOzPxTAqztxxsyBLSa5soqoFzr8sF+5tjOzAqYPhW7lyECLOdb6tdU4HuxexkiQGpu3pQuwN5m+lPsXjXUUEMNNWC9+Av4gDuefzF/uAAAAABJRU5ErkJggg==">
+                        <p class=" text-[#484862] font-sans text-[14px]">پارک</p>
+                    </li>
+                    <li data-place-type="shop" data-place-name="supermarket"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAACvklEQVR4nMWW3U/TUBiHi5Eb71FvvNHExP/AawOJH/+C21q6U5gXirB1PV2h4MZgY2s35COzLWtlmvGh4oTAJBgMQkIkXsANoBhujR8JBAQd2THFeKEIWzcoT/JLmr7J++ScnHPyYthxYlc9IVx27wDBhwAUP1GMoBAwWnbkYpvi3tbe9SFcZrZuOYNnARS7ASO+5Xn+5JGKSRUGdXmlygR+/0ElFBSmACOUY2ZDMeJtAMVG08VEwNtA+loyRBwuVsZhyiLRrTbJRVkUZzmhMOcxhJUcidgW5i+DhlA2PpdE7VM9qDndsUM/DWw6EvyGfhBxxb0FVPYj0LgJQmEjFtlVfVOiK6wx5wUqRpUWLOZ5/gTgwtnhpTH0cnViT4bfj6Hk/DMkzT5C4qSMmkYj23UD/jVK4zasEo3wHvcmqcJlu8qOWGRX4K/dygVoCn6XXif/Kz4oIx/SKLkwhOTZx0icVFDTaHSndsC/ATTPFq64V3OK7f6WZV+/ZFi8X8KvpAwuM105xaTfO1jbFc3828Aq04a+/6Sm3/vNqtDXcoorQ95ah7/t52GIR1fGkX4gqRh/KveKO7lLoD6UPQxxfC6JwEPPDJYXCCvRxU8WXhQt9o3d37Yqrrv5ifWTfa91vWO8t2ixI9GwZnnAXMxbTDb75/lEd7YY8dDSCCJV9jNmBHurr/dORPhRzDXqntEQpXEJQ2IiwFNVvrY9Vyrvx2QljWr6vOs2yXnVkBjv9JwD9eHdrSskNpnOkBqb0J9gzCiAERar69pOY2ZDQWHQ7haumC4GUGzUBwPTxVUwUkFBMW26mKJipfrwBxghSMLIGVPlBIyWAUaQd8dfKCKjwQ4DByvccHDRr3qquMh1o/WC0RuqqRmkPp9G1Vz7F6P1gtEba6lpFE+92Vd8UB0rFH379Ia7YcU9E0Wu+rHyC8n0wz+QFOV/AAAAAElFTkSuQmCC">
+                        <p class=" text-[#484862] font-sans text-[14px]">سوپرمارکت</p>
+                    </li>
+                    <li data-place-type="amenity" data-place-name="fuel"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAC90lEQVR4nO3W30tTURwA8ENBy6KHoIdAo5eK/ojADIKCTAyFkvJef2BZGdF6yHYPF6LAzp2FRRAUZLWZP1pEsSVouGURkgXi73CpS9JlA5XNh3r4xrm7XrfplnK9d/fS/cL34ZyNe76f+z3nbAiZYYYZ/0dAR0YWeC0t4LXMgc8CijL6DBd4N+zWsviQ4sKXQkLQnpGpPoC++bUufjGbtADI28YdnIJX03OK0hOclAG/vVvms51z29QFxLyxxGIcw2PQ6J+Qx9b79cA3vJDHT/pHoHlsKTr2mTmOSI+qiFQAWjB2uuTxlUeNcN3lkcena+rgxsvWlIADzghFDGQ3h7drAmga/SEX8nTwWxwgMS/UPYDngZ/y+HG/fzlAt6qI2MVoAXlnLoFzeHzVe//hlwE4WnERnvkn4gD7nDNbVUUkduB2+3uwt/pWDbjV9g7udn5a0gGEEFIVkeoMrCRfB2egdSS+Y4kAGvQgU4CEWLuDrQTgDgThc4NDRPwLQGMBIKYj4kbpBLT1DsJotRU845MpbyGUFBD+kzbAh/a3MH0iD9p6h5b9fEUAZwQ0BdzxdUH+2ctQUHoOfLmHoLMj+UFPG8Cd4q9EfqUVDhaVi1lQdj7p9zxTk0kBOY5w1yIg/HHNAWokSggWk3kWC1DB85sMCWAwCVBAqU3YaUgAi0k3BTA2Yb8hAQxH7lEAi4VrhgSwnHBM7AAWhnieX2c4QFVVnYXBZErqQq7uAWy0UGA44XsxFg7TNVlOqBbnOaFHcRe0ArDitiEBuibD8xsZjvgl2HFdA5AUCwh5zJEiaa5PURfSBSgsbF7PYmGAzpVwN48YDkCjxEYqo9uI1CMjAhjevle6Ur8aEnDSKmyOzpOw/gEcmaXFlvM1WfKczb5D6sCM7gEMJq7o3U88YuHR4t9I12uL7gGnePseFgu/Yn8XpAMcKuNrd+keQKP4am0mi0mTuJ04MkvfvKLitQaoEoYDsAl7UC+JTAA2OwCabCEzzDADGSb+Ag6R+Yn3SQyNAAAAAElFTkSuQmCC">
+                        <p class=" text-[#484862] font-sans text-[14px]">پمپ بنزین</p>
+                    </li>
+                    <li data-place-type="amenity" data-place-name="toilets"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,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">
+                        <p class="min-w-[100px] text-[#484862] font-sans text-[14px]">سرویس بهداشتی</p>
+                    </li>
+                    <li data-place-type="tourism" data-place-name="hotel"
+                        class="min-w-[150px] h-11 p-3 bg-white rounded-[19px] shadow-sm shadow-gray-400 flex flex-row-reverse gap-2 justify-center items-center cursor-pointer hover:opacity-[0.7]">
+                        <img class="w-[30px] h-auto "
+                            src="data:image/png;base64,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">
+                        <p class=" text-[#484862] font-sans text-[14px]">هتل</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- Lat and Lng Shower -->
+        <!-- <div id="lat-lng-shower"
+            class="xl:block  w-auto h-auto  fixed bottom-2  z-[10000] flex flex-col gap-5  ml-2">
+            <div class=" w-auto h-auto flex flex-row gap-1 align-middle justify-center">
+                <div
+                    class="w-12 h-auto bg-white  rounded-l-full flex align-middle justify-center shadow-gray-400 shadow-sm p-2">
+                    <div class="w-auto h-auto flex flex-row gap-1 self-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="#6f3e99" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="#6f3e99" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+                        </svg>
+                    </div>
+                </div>
+                <div
+                    class="w-auto h-auto p-2 bg-[#dbaddb4a]  rounded-r-full flex align-middle justify-center shadow-gray-400 shadow-sm">
+                    <p id="lat-shower-box" class="text-purple-950 font-[tahoma] text-[12px]">0</p>
+                </div>
+            </div>
+            <div class=" w-auto h-auto flex flex-row gap-1 align-middle justify-center">
+                <div
+                    class="w-12 h-auto p-2 bg-white  rounded-l-full flex align-middle justify-center shadow-gray-400 shadow-sm">
+                    <div class="w-auto h-auto flex flex-row gap-1 self-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="#6f3e99" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="#6f3e99" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                        </svg>
+
+                    </div>
+
+                </div>
+                <div
+                    class="w-auto h-auto p-2 bg-[#dbaddb4a]  rounded-r-full flex align-middle justify-center shadow-gray-400 shadow-sm">
+                    <p id="lng-shower-box" class="text-purple-950 font-[tahoma] text-[12px]">0</p>
+                </div>
+            </div>
+        </div> -->
+        <!-- Routing Information -->
+        <div id="routing-info" class="w-full h-auto py-1 px-2 absolute  bottom-2 z-[10000] hidden">
+            <div class="w-full h-full overflow-x-scroll ul-box">
+                <ul id="routing-info-ul" class="w-auto  flex gap-2  m-0 ">
+                    <li
+                        class="min-w-full h-[130px] bg-white px-3 cursor-pointer rounded-[13px] flex flex-col gap-1 justify-around">
+                        <p id="route-name"
+                            class="w-full h-[50%] p-2 text-right text-black font-sans text-[18px] border-b-[1px] self-center leading-[3]">
+                            مسیر نامگذاری نشده
+                        </p>
+                        <div class="w-auto h-auto flex flex-row-reverse gap-3 justify-between p-2">
+                            <div class="w-auto h-auto flex flex-row-reverse gap-3 justify-start">
+                                <div class="w-auto h-auto flex flex-row-reverse gap-3 justify-center items-center p2">
+                                    <p dir="rtl" id="route-hour"
+                                        class="w-auto h-auto  text-right text-black font-sans text-lg  self-center">
+                                    </p>
+                                    <p dir="rtl" id="route-min"
+                                        class="w-auto h-auto  text-right text-black font-sans text-lg self-center border-l-[1px] pl-3 py-1">
+                                    </p>
+                                </div>
+
+                                <p dir="rtl" id="route-distance"
+                                    class="w-auto h-auto p-2 text-right text-black font-sans text-sm self-center">
+                                </p>
+                            </div>
+                            <p id="start-routing"
+                                class="w-20 h-[2.7rem] p-2 rounded-full bg-[#3851b4] relative text-white font-sans text-[1.1rem] text-center leading-[1.2] hover:opacity-[0.6]">
+                                شروع
+                            </p>
+                        </div>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!--Driving Information-->
+        <div id="driving-info-box"
+            class="w-full h-[120px] p-8 flex flex-row items-center gap-4 bg-white absolute bottom-1 z-[10000] hidden">
+            <div class="w-auto h-auto p-2 bg-gray-200 rounded-[8px] flex justify-center items-center self-center">
+                <svg id="close-driving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="#ffffff" class="w-6 h-6 self-center cursor-pointer hover:opacity-[0.7] ">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </div>
+            <div class="w-full h-auto px-8  flex flex-col gap-4">
+                <div
+                    class="w-auto h-auto flex flex-row-reverse gap-3 justify-center items-center p2 border-b-[1px]  pb-4">
+                    <b dir="rtl" id="driving-hour" class="w-auto h-auto text-center font-sans text-black">
+                    </b>
+                    <b dir="rtl" id="driving-min" class="w-auto h-auto text-center font-sans text-black">
+                    </b>
+                </div>
+                <p dir="rtl" id="driving-distance" class="w-full h-auto text-center font-sans text-gray-600 text-sm">
+
+                </p>
+            </div>
+        </div>
+        <!-- Map Setting  Btns -->
+        <div class="w-full h-auto  flex flex-col-reverse items-end gap-2 absolute bottom-3 right-4">
+            <!-- Select Routing Point From Map -->
+            <div id="routing-selector-from-map"
+                class="w-full h-auto p-1 px-5 flex flex-row justify-center items-center cursor-pointer bg-orange-500 z-[100000] relative left-4 top-3 hidden">
+
+                <p class="w-full h-auto p-2 text-center text-white font-sans  text-[16px]"></p>
+                <svg id="routing-map-selector-closer" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="white" class="w-6 h-6 cursor-pointer hidden">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+            </div>
+            <!-- Routing Icon -->
+            <div id="routing-btn"
+                class="w-28 h-auto p-3   z-[1000] rounded-[19px] flex flex-row gap-2 align-middle justify-center  bg-[#3851b4] shadow-gray-400 shadow-sm cursor-pointer">
+                <p class="text-white font-sans text-[15px] self-center">مسیریابی</p>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="white" class="w-6 h-6 self-center">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+                </svg>
+            </div>
+            <!-- Current Location Finder -->
+            <div id="current-loc-finder"
+                class="w-[52px] h-[52px]   z-[1000] rounded-[19px] flex align-middle justify-center bg-white shadow-gray-400 shadow-sm cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="#3851b4" class="w-6 h-6 self-center ">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </div>
+            <!-- Map Type icon -->
+            <div id="open-mt"
+                class="w-[52px] h-[52px]   z-[1000] rounded-[19px] flex align-middle justify-center bg-white shadow-gray-400 shadow-sm cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="#3851b4" class="w-6 h-6  self-center">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" />
+                </svg>
+            </div>
+        </div>
+        <!-- Map Types Box -->
+        <div id="map-types-box" class="w-full h-auto p-3 bottom-0 fixed bg-white z-[10000] hidden">
+            <div
+                class="w-full h-14 p-6 flex flex-row-reverse justify-between items-center  border-b-[1px] border-gray-100">
+                <div class="w-auto h-auto flex flex-row-reverse gap-3">
+                    <p id="type-name" class="w-auto h-auto text-center font-sans text-[15px] text-black">تنظیمات
+                        نمایش نقشه</p>
+                </div>
+                <svg id="close-mt" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-6 h-6 self-center cursor-pointer hover:opacity-[0.7]">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </div>
+            <!-- Map types Items -->
+            <div id="map-type-items" class="w-full h-auto p-6 ">
+                <ul id="map-types-ul" class="w-full h-auto px-8  flex flex-row-reverse gap-2 justify-around flex-wrap ">
+                    <li class="w-20 h-20 overflow-hidden cursor-pointer p-2" data-type="Terrain">
+                        <img class="w-full h-full rounded-xl block "
+                            src="http://myapi.iapp.ir/public/storage/map-types/terrain.png">
+                    </li>
+                    <li class="w-20 h-20 overflow-hidden cursor-pointer p-2" data-type="Mapnik">
+                        <img class="w-full h-full rounded-xl block "
+                            src="http://myapi.iapp.ir/public/storage/map-types/mapnik.png">
+                    </li>
+                    <li class="w-20 h-20 overflow-hidden cursor-pointer p-2" data-type="Street">
+                        <img class="w-full h-full rounded-xl block "
+                            src="http://myapi.iapp.ir/public/storage/map-types/street.png">
+                    </li>
+                    <li class="w-20 h-20 overflow-hidden cursor-pointer p-2" data-type="TransportDark">
+                        <img class="w-full h-full rounded-xl block "
+                            src="http://myapi.iapp.ir/public/storage/map-types/transportdark.png">
+                    </li>
+                    <li class="w-20 h-20 overflow-hidden cursor-pointer p-2" data-type="Satellite">
+                        <img class="w-full h-full rounded-xl block "
+                            src="http://myapi.iapp.ir/public/storage/map-types/satellite.png">
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- Search Items Template -->
+    <template id="search-items-template">
+        <li id="search-item" class="w-full h-auto pb-2 px-1 flex flex-row-reverse gap-2 border-b-[1px] ">
+            <div class="w-10 p-1 bg-[#ededed] flex items-center justify-center rounded-[8px]">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="#cccccc" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
+            </div>
+
+            <div class="w-auto h-auto flex flex-col gap-2">
+                <p id="place-name" class="text-gray-500 font-sans text-[15px] text-right cursor-pointer"></p>
+                <p id="place-display" class="text-gray-400 font-sans text-[13px] text-right cursor-pointer"></p>
+            </div>
+        </li>
+    </template>
+
+    <!-- Routing Info Template -->
+    <template id="routing-info-template">
+
+    </template>
+</body>
+
+</html>
